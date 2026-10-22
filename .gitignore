@@ -1,2 +1,8 @@
-.venv
-.bam_cahier_des_charges.md
+bam_cahier_des_charges.md
+exp.md
+.venv/
+__pycache__/
+.env
+data/
+*.parquet
+*.csv

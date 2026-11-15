@@ -1,92 +1,64 @@
-"""Normalize BAM reference exchange-rate files into a clean long-format Parquet file."""
-from __future__ import annotations
-
-import argparse
-from pathlib import Path
-
+"""Normalize and load BAM exchange rates into Azure SQL."""
 import pandas as pd
+from pathlib import Path
+import argparse
+from ingestion.load_to_sql import load_parquet
+from common.db import make_engine, wait_for_db
 
-ALIASES = {
-    "rate_date": {"date", "date_cours", "datecours", "rate_date", "jour"},
-    "currency_code": {"currency", "devise", "code", "code_devise", "currency_code", "iso"},
-    "unit": {"unit", "unite", "unité", "unites", "quantite", "quantité", "unit_value"},
-    "rate_mad": {"rate", "cours", "cours_reference", "cours_de_reference", "cours_de_référence",
-                 "reference_rate", "rate_mad", "mid", "valeur"},
-}
+def process_fx_file(csv_path: Path, silver_dir: Path) -> Path:
+    print(f"Reading {csv_path}...")
+    df = pd.read_csv(csv_path, sep=';', decimal=',')
 
+    # 1. Convert date (Removed the year filter to keep all 26 years!)
+    df['date'] = pd.to_datetime(df['date'], dayfirst=True)
 
-def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
-    rename: dict[str, str] = {}
-    for col in df.columns:
-        key = str(col).strip().lower().replace(" ", "_").replace("-", "_")
-        for target, names in ALIASES.items():
-            if key in names:
-                rename[col] = target
-    df = df.rename(columns=rename)
-    missing = {"rate_date", "currency_code", "rate_mad"} - set(df.columns)
-    if missing:
-        raise ValueError(
-            f"Missing columns {missing}. Found: {list(df.columns)}. "
-            "Extend ALIASES in ingest_exchange_rates.py to match your file."
-        )
-    if "unit" not in df.columns:
-        df["unit"] = 1
-    return df
+    # 2. Keep ONLY the reference rates (BAM uses 'reference', not 'buy')
+    if 'type' in df.columns:
+        df = df[df['type'] == 'reference']
 
+    # 3. Format it exactly as your pipeline expects
+    # The 'base' column contains EUR, USD, etc. The 'value' column is the rate in MAD.
+    clean_df = pd.DataFrame({
+        'rate_date': df['date'].dt.strftime('%Y-%m-%d'),
+        'currency_code': df['base'].str.upper(),
+        'rate_mad': df['value'],
+        'source_file': csv_path.name, # <--- ADD THIS
+        'unit': 1
+    })
 
-def _to_float(series: pd.Series) -> pd.Series:
-    return pd.to_numeric(
-        series.astype(str)
-        .str.replace("\u00a0", "", regex=False)
-        .str.replace(" ", "", regex=False)
-        .str.replace(",", ".", regex=False),
-        errors="coerce",
-    )
+    # 4. Remove duplicates and save to Silver
+    clean_df = clean_df.drop_duplicates(subset=['rate_date', 'currency_code'])
 
+    silver_dir.mkdir(parents=True, exist_ok=True)
+    parquet_path = silver_dir / "exchange_rates_fx.parquet"
+    clean_df.to_parquet(parquet_path, index=False)
 
-def load_fx_file(path: Path) -> pd.DataFrame:
-    if path.suffix.lower() in {".xlsx", ".xls"}:
-        df = pd.read_excel(path)
-    else:
-        df = pd.read_csv(path, sep=None, engine="python", encoding="utf-8-sig")
-    df = _normalize_columns(df)
+    print(f"Saved clean data to {parquet_path} ({len(clean_df)} rows)")
+    return parquet_path
 
-    out = pd.DataFrame(
-        {
-            "rate_date": pd.to_datetime(df["rate_date"], dayfirst=True, errors="coerce").dt.date,
-            "currency_code": df["currency_code"].astype(str).str.strip().str.upper(),
-            "unit": pd.to_numeric(df["unit"], errors="coerce").fillna(1).astype(int),
-            "rate_mad": _to_float(df["rate_mad"]),
-        }
-    )
-    out = out.dropna(subset=["rate_date", "rate_mad"])
-    out = out[(out["rate_mad"] > 0) & (out["currency_code"].str.len().between(3, 10))]
-    out["source_file"] = path.name
-    return out.drop_duplicates(subset=["rate_date", "currency_code", "source_file"])
-
-
-def main() -> None:
+def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input-dir", default="data/bronze")
-    parser.add_argument("--output-dir", default="data/silver")
+    parser.add_argument("--input", default="data/bronze/bam_raw.csv", help="Path to raw BAM CSV")
+    parser.add_argument("--silver-dir", default="data/silver")
     args = parser.parse_args()
 
-    out_dir = Path(args.output_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
+    csv_path = Path(args.input)
+    if not csv_path.exists():
+        print(f"Error: Could not find {csv_path}. Please check the filename.")
+        return
 
-    files = sorted(
-        p for p in Path(args.input_dir).glob("fx_*") if p.suffix.lower() in {".csv", ".xlsx", ".xls"}
-    )
-    if not files:
-        raise SystemExit(f"No fx_* files in {args.input_dir}")
+    # Process the CSV and save Parquet
+    parquet_path = process_fx_file(csv_path, Path(args.silver_dir))
 
-    for f in files:
-        df = load_fx_file(f)
-        target = out_dir / f"exchange_rates_{f.stem}.parquet"
-        df.to_parquet(target, index=False)
-        print(f"{f.name}: {len(df)} rows, {df['currency_code'].nunique()} currencies "
-              f"({df['rate_date'].min()} -> {df['rate_date'].max()}) -> {target.name}")
+    # Load into Azure SQL
+    print("\nConnecting to Azure SQL...")
+    engine = make_engine()
+    wait_for_db(engine)
 
+    print("Loading into landing.exchange_rates...")
+    # Note: load_parquet will DELETE the old broken rows and insert the new ones
+    rows_loaded = load_parquet(engine, parquet_path)
+    print(f"Success! Loaded {rows_loaded} rows into Azure SQL.")
 
 if __name__ == "__main__":
     main()

@@ -45,7 +45,7 @@ CREATE TABLE landing.exchange_rates (
     rate_date     DATE          NOT NULL,
     currency_code VARCHAR(10)   NOT NULL,
     unit          INT           NOT NULL,
-    rate_mad      DECIMAL(18,6) NOT NULL,
+    rate_mad      VARCHAR(50)   NOT NULL,
     source_file   NVARCHAR(255) NOT NULL,
     loaded_at     DATETIME2     NOT NULL DEFAULT SYSUTCDATETIME()
 );

@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: landing
+    schema: landing
+    tables:
+      - name: exchange_rates
+      - name: report_pages
+      - name: report_table_rows

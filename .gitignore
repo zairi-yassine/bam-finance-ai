@@ -1,8 +1,84 @@
-bam_cahier_des_charges.md
-exp.md
-.venv/
-__pycache__/
+# ====================================
+# Secrets & Environment Variables
+# ====================================
 .env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ====================================
+# Data & Large Files
+# ====================================
 data/
 *.parquet
 *.csv
+*.tsv
+*.xlsx
+*.db
+*.sqlite
+*.sqlite3
+*.png
+*.jpg
+*.jpeg
+*.gif
+!frontend/public/**
+
+# ====================================
+# Python & Virtual Environments
+# ====================================
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ====================================
+# dbt Artifacts
+# ====================================
+dbt_bam/target/
+dbt_bam/dbt_packages/
+dbt_bam/logs/
+target/
+dbt_packages/
+
+# ====================================
+# Frontend / Node / Next.js
+# ====================================
+node_modules/
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.vercel/
+*.tsbuildinfo
+next-env.d.ts
+
+# ====================================
+# Logs & Tool Artifacts
+# ====================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.archify/
+
+# ====================================
+# IDE & OS Files
+# ====================================
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# ====================================
+# Local Project Notes
+# ====================================
+bam_cahier_des_charges.md
+exp.md

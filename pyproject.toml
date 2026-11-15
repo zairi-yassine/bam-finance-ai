@@ -12,12 +12,23 @@ dependencies = [
     "datasets>=5.1.0",
     "dbt-core>=1.8",
     "dbt-sqlserver>=1.8",
+    "dotenv>=0.9.9",
+    "fastapi>=0.162.0",
+    "langchain-google-genai>=4.4.3",
+    "langchain-ollama>=1.1.0",
+    "langchain-openai>=1.7.4",
+    "langgraph>=1.2.20",
+    "load-dotenv>=0.1.0",
     "pandas==3.1.0",
+    "pandas-stubs~=3.1.0",
     "pdfplumber>=0.11.10",
     "pyarrow>=15.0",
+    "pydantic>=2.14.1",
     "pyodbc>=5.1",
     "python-dotenv>=1.0",
     "sqlalchemy>=2.0",
+    "sqlglot>=30.24.0",
+    "uvicorn>=0.54.0",
 ]
 
 [project.scripts]

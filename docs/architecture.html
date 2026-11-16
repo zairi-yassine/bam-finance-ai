@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BAM Financial Analytics — Architecture</title>
+
+<!-- Tailwind CSS (CDN) : utilisé pour la typographie / utilitaires. Le layout principal est en CSS natif. -->
+<script src="https://cdn.tailwindcss.com/3.4.16"></script>
+<!-- Lucide Icons (CDN) -->
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  :root {
+    --bg: #0E1117;
+    --text: #e6e9f0;
+    --muted: #8b93a7;
+    --card: rgba(255, 255, 255, 0.05);
+    --card-border: rgba(255, 255, 255, 0.12);
+    --chip-bg: rgba(255, 255, 255, 0.07);
+    --lane-border-alpha: .22;
+    --lane-bg-alpha: .07;
+    --blob-opacity: .5;
+    --grid-line: rgba(255,255,255,.035);
+
+    --blue: #7db4ff;
+    --violet: #b9a3ff;
+    --green: #7ee2a8;
+    --red: #ff7a7a;
+  }
+  :root[data-theme="light"] {
+    --bg: #f3f5fb;
+    --text: #141a2b;
+    --muted: #5b6479;
+    --card: rgba(255, 255, 255, 0.72);
+    --card-border: rgba(20, 26, 43, 0.10);
+    --chip-bg: rgba(20, 26, 43, 0.06);
+    --lane-border-alpha: .35;
+    --lane-bg-alpha: .12;
+    --blob-opacity: .35;
+    --grid-line: rgba(20,26,43,.05);
+
+    --blue: #3b82f6;
+    --violet: #7c5cf0;
+    --green: #16a360;
+    --red: #e5484d;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
+    transition: background .4s ease, color .4s ease;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- Arrière-plan ---------- */
+  .bg-grid {
+    position: fixed; inset: 0; z-index: -2; pointer-events: none;
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse at 50% 30%, #000 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at 50% 30%, #000 30%, transparent 75%);
+  }
+  .blob {
+    position: fixed; z-index: -1; border-radius: 50%; filter: blur(120px);
+    pointer-events: none; opacity: var(--blob-opacity); transition: opacity .4s;
+  }
+  .blob.b1 { width: 520px; height: 520px; left: -140px; top: -120px; background: #6d5dfc; }
+  .blob.b2 { width: 560px; height: 560px; right: -160px; top: 30%; background: #2f7bff; }
+  .blob.b3 { width: 460px; height: 460px; left: 25%; bottom: -200px; background: #20c997; opacity: calc(var(--blob-opacity) * .6); }
+
+  /* ---------- Layout ---------- */
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 28px 20px 56px; }
+
+  header.top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 600; letter-spacing: .02em;
+    padding: 6px 12px; border-radius: 999px;
+    background: var(--card); border: 1px solid var(--card-border);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  }
+  .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); }
+
+  .toggle {
+    display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+    font: inherit; font-size: 13px; font-weight: 600; color: var(--text);
+    padding: 9px 14px; border-radius: 12px;
+    background: var(--card); border: 1px solid var(--card-border);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s;
+    white-space: nowrap;
+  }
+  .toggle:hover { transform: translateY(-1px); border-color: var(--violet); box-shadow: 0 8px 24px -8px var(--violet); }
+  .toggle svg { width: 16px; height: 16px; }
+
+  h1.title {
+    margin: 34px 0 0; text-align: center;
+    font-size: clamp(30px, 5.2vw, 58px); font-weight: 800; line-height: 1.08; letter-spacing: -0.045em;
+  }
+  h1.title .grad {
+    background: linear-gradient(90deg, var(--blue), var(--violet) 50%, var(--green));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    background-size: 200% 100%; animation: shimmer 8s linear infinite;
+  }
+  h1.title .sub { display: block; font-weight: 600; font-size: .5em; letter-spacing: -0.03em; color: var(--muted); margin-top: 10px; }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+
+  .lead { text-align: center; max-width: 720px; margin: 16px auto 0; color: var(--muted); font-size: 15px; }
+
+  /* ---------- Diagramme ---------- */
+  .diagram { position: relative; margin-top: 44px; display: flex; flex-direction: column; gap: 44px; }
+
+  .lane {
+    position: relative; /* pas de z-index / filter : les connecteurs passent entre le fond et les cartes */
+    display: grid; grid-template-columns: 210px 1fr; gap: 22px; align-items: center;
+    padding: 28px 26px;
+    border-radius: 26px;
+    background: color-mix(in srgb, var(--c) calc(var(--lane-bg-alpha) * 100%), transparent);
+    border: 1px solid color-mix(in srgb, var(--c) calc(var(--lane-border-alpha) * 100%), transparent);
+  }
+  .lane.l1 { --c: var(--blue); }
+  .lane.l2 { --c: var(--violet); }
+  .lane.l3 { --c: var(--green); }
+
+  .lane-label .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 10px; font-size: 13px; font-weight: 800;
+    color: var(--bg); background: var(--c); box-shadow: 0 6px 18px -4px var(--c);
+  }
+  .lane-label h2 { margin: 12px 0 4px; font-size: 19px; font-weight: 700; letter-spacing: -0.03em; color: var(--c); line-height: 1.2; }
+  .lane-label p { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.55; }
+
+  .nodes { display: flex; gap: 70px; align-items: stretch; }
+
+  .node {
+    --c: var(--blue);
+    position: relative; z-index: 2; flex: 1 1 0; min-width: 0;
+    padding: 18px 16px 16px; border-radius: 20px;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    box-shadow: 0 10px 30px -14px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.08);
+    transition: transform .28s cubic-bezier(.2,.8,.2,1), box-shadow .28s ease, border-color .28s ease;
+    cursor: default;
+    animation: rise .7s cubic-bezier(.2,.8,.2,1) backwards;
+  }
+  .node:hover {
+    transform: scale(1.05) translateY(-2px);
+    border-color: color-mix(in srgb, var(--c) 65%, transparent);
+    box-shadow: 0 18px 44px -10px color-mix(in srgb, var(--c) 70%, transparent), inset 0 1px 0 rgba(255,255,255,.12);
+    z-index: 5;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+  .node.danger { --c: var(--red); border-color: color-mix(in srgb, var(--red) 35%, var(--card-border)); }
+
+  .node .step {
+    position: absolute; top: 12px; right: 14px;
+    font: 500 11px 'JetBrains Mono', monospace; color: var(--muted);
+  }
+  .icon-box {
+    width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center;
+    color: var(--c);
+    background: color-mix(in srgb, var(--c) 16%, transparent);
+    border: 1px solid color-mix(in srgb, var(--c) 35%, transparent);
+    transition: transform .28s ease, background .28s;
+  }
+  .node:hover .icon-box { transform: rotate(-6deg) scale(1.08); background: color-mix(in srgb, var(--c) 26%, transparent); }
+  .icon-box svg { width: 22px; height: 22px; }
+
+  .node h3 { margin: 14px 0 3px; font-size: 15px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.25; }
+  .node .desc { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 11px; }
+  .chip {
+    font: 500 10.5px 'JetBrains Mono', monospace; padding: 3px 8px; border-radius: 7px;
+    background: var(--chip-bg); border: 1px solid var(--card-border);
+  }
+  .node.danger .chip { color: var(--red); border-color: color-mix(in srgb, var(--red) 35%, transparent); }
+
+  /* Connecteurs SVG */
+  #links { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; overflow: visible; }
+  .flow { stroke-dasharray: 2 16; stroke-linecap: round; animation: dash 1.2s linear infinite; opacity: .9; }
+  @keyframes dash { to { stroke-dashoffset: -18; } }
+
+  /* ---------- Légende ---------- */
+  .legend {
+    margin-top: 44px; padding: 22px 24px; border-radius: 22px;
+    background: var(--card); border: 1px solid var(--card-border);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  }
+  .legend h4 { margin: 0 0 14px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+  .legend-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+  .legend-item { display: flex; gap: 12px; align-items: flex-start; }
+  .legend-item .sw { flex: none; width: 14px; height: 14px; border-radius: 5px; margin-top: 5px; background: var(--c); box-shadow: 0 0 14px -2px var(--c); }
+  .legend-item b { display: block; font-size: 14px; letter-spacing: -0.02em; }
+  .legend-item span { font-size: 12.5px; color: var(--muted); }
+  .legend-foot { display: flex; flex-wrap: wrap; gap: 22px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--card-border); font-size: 12.5px; color: var(--muted); }
+  .legend-foot .k { display: inline-flex; align-items: center; gap: 8px; }
+  .legend-foot .line { width: 34px; height: 4px; border-radius: 4px; background: linear-gradient(90deg, var(--blue), var(--violet), var(--green)); }
+  .legend-foot .danger-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--red); box-shadow: 0 0 12px var(--red); }
+
+  footer { margin-top: 28px; text-align: center; font-size: 12px; color: var(--muted); }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 1100px) {
+    .nodes { gap: 50px; }
+    .lane { grid-template-columns: 1fr; gap: 18px; }
+    .lane-label { display: flex; align-items: center; gap: 14px; }
+    .lane-label h2 { margin: 0; }
+    .lane-label p { display: none; }
+    .lane-label .num { flex: none; }
+  }
+  @media (max-width: 820px) {
+    .nodes { flex-direction: column; gap: 46px; }
+    .lane-label {
+      position: relative; z-index: 3; width: fit-content;
+      padding: 5px 14px 5px 5px; border-radius: 999px;
+      background: color-mix(in srgb, var(--c) 18%, var(--bg));
+      border: 1px solid color-mix(in srgb, var(--c) 30%, transparent);
+    }
+    .lane-label h2 { font-size: 15px; }
+    .diagram { gap: 40px; }
+    header.top { flex-wrap: wrap; }
+    .toggle span { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .flow, h1.title .grad { animation: none; }
+    .node { animation: none; }
+  }
+</style>
+</head>
+
+<body>
+  <div class="bg-grid"></div>
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+
+  <div class="wrap">
+    <header class="top">
+      <div class="badge"><span class="dot"></span> Architecture · v1.0</div>
+      <button id="themeToggle" class="toggle" type="button" aria-label="Basculer le thème">
+        <i data-lucide="sun" id="themeIcon"></i>
+        <span id="themeLabel">Mode Clair</span>
+      </button>
+    </header>
+
+    <h1 class="title">
+      <span class="grad">BAM Financial Analytics</span>
+      <span class="sub">End-to-End Data &amp; AI Pipeline</span>
+    </h1>
+    <p class="lead">
+      De l'ingestion des publications Bank Al-Maghrib jusqu'à une interface conversationnelle Text-to-SQL,
+      en passant par un entrepôt dimensionnel modélisé avec dbt.
+    </p>
+
+    <!-- ===================== DIAGRAMME ===================== -->
+    <main class="diagram" id="diagram">
+
+      <!-- Couloir 1 -->
+      <section class="lane l1">
+        <div class="lane-label">
+          <span class="num">1</span>
+          <div>
+            <h2>Data Ingestion</h2>
+            <p>Collecte des sources brutes, extraction et dépôt dans le Data Lake.</p>
+          </div>
+        </div>
+        <div class="nodes">
+          <article class="node" id="n1" style="--c: var(--blue); animation-delay:.05s">
+            <span class="step">01</span>
+            <div class="icon-box"><i data-lucide="file-text"></i></div>
+            <h3>Sources</h3>
+            <p class="desc">Publications officielles et données de marché.</p>
+            <div class="chips"><span class="chip">PDFs BAM</span><span class="chip">CSV Taux de Change</span></div>
+          </article>
+          <article class="node" id="n2" style="--c: var(--blue); animation-delay:.12s">
+            <span class="step">02</span>
+            <div class="icon-box"><i data-lucide="code"></i></div>
+            <h3>Ingestion Python</h3>
+            <p class="desc">Extraction de tableaux, nettoyage et normalisation.</p>
+            <div class="chips"><span class="chip">pdfplumber</span><span class="chip">pandas</span></div>
+          </article>
+          <article class="node" id="n3" style="--c: var(--blue); animation-delay:.19s">
+            <span class="step">03</span>
+            <div class="icon-box"><i data-lucide="cloud"></i></div>
+            <h3>Stockage Azure</h3>
+            <p class="desc">Data Lake en architecture médaillon.</p>
+            <div class="chips"><span class="chip">ADLS Gen2</span><span class="chip">Bronze</span><span class="chip">Silver</span></div>
+          </article>
+        </div>
+      </section>
+
+      <!-- Couloir 2 -->
+      <section class="lane l2">
+        <div class="lane-label">
+          <span class="num">2</span>
+          <div>
+            <h2>Transformation &amp; Warehouse</h2>
+            <p>Chargement, modélisation ELT et entrepôt dimensionnel.</p>
+          </div>
+        </div>
+        <div class="nodes">
+          <article class="node" id="n4" style="--c: var(--violet); animation-delay:.26s">
+            <span class="step">04</span>
+            <div class="icon-box"><i data-lucide="database"></i></div>
+            <h3>Azure SQL</h3>
+            <p class="desc">Zone d'atterrissage des données chargées.</p>
+            <div class="chips"><span class="chip">schéma landing</span></div>
+          </article>
+          <article class="node" id="n5" style="--c: var(--violet); animation-delay:.33s">
+            <span class="step">05</span>
+            <div class="icon-box"><i data-lucide="settings"></i></div>
+            <h3>dbt Core</h3>
+            <p class="desc">Transformations SQL versionnées et testées.</p>
+            <div class="chips"><span class="chip">Staging</span><span class="chip">Marts</span></div>
+          </article>
+          <article class="node" id="n6" style="--c: var(--violet); animation-delay:.4s">
+            <span class="step">06</span>
+            <div class="icon-box"><i data-lucide="star"></i></div>
+            <h3>Star Schema</h3>
+            <p class="desc">Modèle dimensionnel prêt pour l'analyse.</p>
+            <div class="chips">
+              <span class="chip">fact_exchange_rate</span><span class="chip">fact_financial_indicator</span>
+              <span class="chip">dim_date</span><span class="chip">dim_currency</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- Couloir 3 -->
+      <section class="lane l3">
+        <div class="lane-label">
+          <span class="num">3</span>
+          <div>
+            <h2>AI Serving &amp; Security</h2>
+            <p>Agent Text-to-SQL, garde-fou de sécurité, API et interface utilisateur.</p>
+          </div>
+        </div>
+        <div class="nodes">
+          <article class="node" id="n7" style="--c: var(--green); animation-delay:.47s">
+            <span class="step">07</span>
+            <div class="icon-box"><i data-lucide="cpu"></i></div>
+            <h3>Agent LangGraph</h3>
+            <p class="desc">Traduit la question en requête SQL.</p>
+            <div class="chips"><span class="chip">Text-to-SQL</span></div>
+          </article>
+          <article class="node danger" id="n8" style="--c: var(--red); animation-delay:.54s">
+            <span class="step">08</span>
+            <div class="icon-box"><i data-lucide="shield-alert"></i></div>
+            <h3>SQL Guard</h3>
+            <p class="desc">Bloque DML/DDL et force le SELECT en lecture seule.</p>
+            <div class="chips"><span class="chip">Sécurité</span><span class="chip">SELECT only</span></div>
+          </article>
+          <article class="node" id="n9" style="--c: var(--green); animation-delay:.61s">
+            <span class="step">09</span>
+            <div class="icon-box"><i data-lucide="zap"></i></div>
+            <h3>API FastAPI</h3>
+            <p class="desc">Expose l'agent via un endpoint REST.</p>
+            <div class="chips"><span class="chip">POST /ask</span></div>
+          </article>
+          <article class="node" id="n10" style="--c: var(--green); animation-delay:.68s">
+            <span class="step">10</span>
+            <div class="icon-box"><i data-lucide="monitor"></i></div>
+            <h3>Frontend Next.js</h3>
+            <p class="desc">Interface utilisateur Glassmorphism.</p>
+            <div class="chips"><span class="chip">React</span><span class="chip">Tailwind</span></div>
+          </article>
+        </div>
+      </section>
+
+      <!-- Connecteurs (dessinés en JS) -->
+      <svg id="links" aria-hidden="true"></svg>
+    </main>
+
+    <!-- ===================== LÉGENDE ===================== -->
+    <section class="legend">
+      <h4>Légende des phases</h4>
+      <div class="legend-grid">
+        <div class="legend-item" style="--c: var(--blue)">
+          <i class="sw"></i>
+          <div><b>Phase 1 · Ingestion</b><span>Collecte des PDFs et CSV, extraction Python, stockage Bronze/Silver sur ADLS Gen2.</span></div>
+        </div>
+        <div class="legend-item" style="--c: var(--violet)">
+          <i class="sw"></i>
+          <div><b>Phase 2 · Transformation</b><span>Chargement dans Azure SQL, modélisation dbt (Staging → Marts) et Star Schema.</span></div>
+        </div>
+        <div class="legend-item" style="--c: var(--green)">
+          <i class="sw"></i>
+          <div><b>Phase 3 · Serving</b><span>Agent LangGraph, validation SQL Guard, API FastAPI et frontend Next.js.</span></div>
+        </div>
+      </div>
+      <div class="legend-foot">
+        <span class="k"><i class="line"></i> Flux de données (gauche → droite)</span>
+        <span class="k"><i class="danger-dot"></i> Composant de sécurité (SQL Guard)</span>
+        <span class="k">Survolez un bloc pour le mettre en avant</span>
+      </div>
+    </section>
+
+    <footer>BAM Financial Analytics · Architecture de bout en bout</footer>
+  </div>
+
+<script>
+  /* ---------- Icônes Lucide ---------- */
+  function renderIcons() {
+    if (window.lucide) lucide.createIcons();
+  }
+
+  /* ---------- Thème clair / sombre ---------- */
+  const root = document.documentElement;
+  const label = document.getElementById('themeLabel');
+
+  function applyTheme(theme) {
+    root.setAttribute('data-theme', theme);
+    label.textContent = theme === 'dark' ? 'Mode Clair' : 'Mode Sombre';
+    const holder = document.getElementById('themeToggle');
+    holder.querySelector('svg, i').outerHTML = `<i data-lucide="${theme === 'dark' ? 'sun' : 'moon'}" id="themeIcon"></i>`;
+    renderIcons();
+    try { localStorage.setItem('bam-arch-theme', theme); } catch (e) {}
+    drawLinks();
+  }
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    applyTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  });
+
+  /* ---------- Connecteurs SVG courbes avec dégradé ---------- */
+  const FLOW = [['n1','n2'],['n2','n3'],['n3','n4'],['n4','n5'],['n5','n6'],['n6','n7'],['n7','n8'],['n8','n9'],['n9','n10']];
+  const NS = 'http://www.w3.org/2000/svg';
+  const diagram = document.getElementById('diagram');
+  const svg = document.getElementById('links');
+
+  const nodeColor = (el) => getComputedStyle(el).getPropertyValue('--c').trim();
+  // Résout var(--x) en couleur réelle
+  function resolveColor(el) {
+    const probe = document.createElement('i');
+    probe.style.color = nodeColor(el);
+    el.appendChild(probe);
+    const c = getComputedStyle(probe).color;
+    probe.remove();
+    return c;
+  }
+
+  function drawLinks() {
+    const box = diagram.getBoundingClientRect();
+    svg.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
+    svg.innerHTML = '';
+    const defs = document.createElementNS(NS, 'defs');
+    svg.appendChild(defs);
+
+    FLOW.forEach(([a, b], i) => {
+      const A = document.getElementById(a), B = document.getElementById(b);
+      const ra = A.getBoundingClientRect(), rb = B.getBoundingClientRect();
+      const cA = resolveColor(A), cB = resolveColor(B);
+
+      const sameRow = rb.left > ra.right - 8 && Math.abs((ra.top + ra.height / 2) - (rb.top + rb.height / 2)) < 60;
+      let sx, sy, tx, ty, d, head;
+
+      if (sameRow) {                       // horizontal : droite de A → gauche de B
+        sx = ra.right - box.left + 1;  sy = ra.top + ra.height / 2 - box.top;
+        tx = rb.left - box.left - 13;  ty = rb.top + rb.height / 2 - box.top;
+        const k = Math.max(20, (tx - sx) * .5);
+        d = `M ${sx} ${sy} C ${sx + k} ${sy}, ${tx - k} ${ty}, ${tx} ${ty}`;
+        head = `${tx + 13},${ty} ${tx - 1},${ty - 9} ${tx - 1},${ty + 9}`;
+      } else {                             // vertical : bas de A → haut de B (courbe en S)
+        sx = ra.left + ra.width / 2 - box.left;  sy = ra.bottom - box.top + 1;
+        tx = rb.left + rb.width / 2 - box.left;  ty = rb.top - box.top - 13;
+        const k = Math.max(30, (ty - sy) * .55);
+        d = `M ${sx} ${sy} C ${sx} ${sy + k}, ${tx} ${ty - k}, ${tx} ${ty}`;
+        head = `${tx},${ty + 13} ${tx - 9},${ty - 1} ${tx + 9},${ty - 1}`;
+      }
+
+      const gid = `g${i}`;
+      const g = document.createElementNS(NS, 'linearGradient');
+      g.setAttribute('id', gid);
+      g.setAttribute('gradientUnits', 'userSpaceOnUse');
+      g.setAttribute('x1', sx); g.setAttribute('y1', sy);
+      g.setAttribute('x2', tx); g.setAttribute('y2', ty + (sameRow ? 0 : 13));
+      // éviter un dégradé dégénéré (x1==x2 et y1==y2)
+      if (sx === tx && sy === ty) g.setAttribute('x2', tx + 1);
+      g.innerHTML = `<stop offset="0" stop-color="${cA}"/><stop offset="1" stop-color="${cB}"/>`;
+      defs.appendChild(g);
+
+      // halo lumineux
+      const glow = document.createElementNS(NS, 'path');
+      glow.setAttribute('d', d); glow.setAttribute('fill', 'none');
+      glow.setAttribute('stroke', `url(#${gid})`); glow.setAttribute('stroke-width', 12);
+      glow.setAttribute('stroke-linecap', 'round'); glow.setAttribute('opacity', '.16');
+      svg.appendChild(glow);
+
+      // trait épais dégradé
+      const p = document.createElementNS(NS, 'path');
+      p.setAttribute('d', d); p.setAttribute('fill', 'none');
+      p.setAttribute('stroke', `url(#${gid})`); p.setAttribute('stroke-width', 5);
+      p.setAttribute('stroke-linecap', 'round');
+      svg.appendChild(p);
+
+      // particules animées (flux)
+      const f = document.createElementNS(NS, 'path');
+      f.setAttribute('d', d); f.setAttribute('fill', 'none');
+      f.setAttribute('stroke', '#fff'); f.setAttribute('stroke-width', 2);
+      f.setAttribute('class', 'flow');
+      svg.appendChild(f);
+
+      // pointe de flèche
+      const h = document.createElementNS(NS, 'polygon');
+      h.setAttribute('points', head); h.setAttribute('fill', cB);
+      h.setAttribute('stroke-linejoin', 'round'); h.setAttribute('stroke', cB); h.setAttribute('stroke-width', 2);
+      svg.appendChild(h);
+    });
+  }
+
+  /* ---------- Initialisation ---------- */
+  let saved = null;
+  try { saved = localStorage.getItem('bam-arch-theme'); } catch (e) {}
+  window.addEventListener('DOMContentLoaded', () => {
+    applyTheme(saved === 'light' ? 'light' : 'dark');
+  });
+  window.addEventListener('load', () => { renderIcons(); drawLinks(); setTimeout(drawLinks, 900); });
+  window.addEventListener('resize', () => requestAnimationFrame(drawLinks));
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawLinks);
+  if (window.ResizeObserver) new ResizeObserver(() => requestAnimationFrame(drawLinks)).observe(diagram);
+</script>
+</body>
+</html>

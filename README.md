@@ -60,7 +60,7 @@
 <!-- ABOUT THE PROJECT -->
 ## À propos du projet
 
-[![Product Name Screen Shot][product-screenshot]](docs/architecture.png)
+[![Architecture BAM](docs/architecture.png)](https://zairi-yassine.github.io/bam-finance-ai/docs/architecture.html)
 
 Ce projet répond à un problème concret : les rapports annuels de Bank Al-Maghrib sont des PDFs complexes de 300+ pages. L'objectif était de construire un pipeline ELT complet pour extraire ces données, les modéliser en Star Schema avec dbt, et permettre à un utilisateur de poser des questions en langage naturel via un agent LangGraph.
 

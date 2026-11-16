@@ -1,0 +1,10 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+pydantic>=2.6
+sqlalchemy>=2.0
+pyodbc>=5.1
+sqlglot>=23.0
+langgraph>=0.2
+langchain-core>=0.3
+langchain-openai>=0.2
+python-dotenv>=1.0

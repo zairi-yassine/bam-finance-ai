@@ -18,7 +18,7 @@ import ChatMessage, { type Message } from "@/components/chat/ChatMessage";
 import ChatInput from "@/components/chat/ChatInput";
 import AgentStatus from "@/components/chat/AgentStatus";
 
-const API_URL = "http://127.0.0.1:8000/ask";
+const API_URL = "https://bam-api.salmonstone-d58feffe.francecentral.azurecontainerapps.io/ask";
 const REQUEST_TIMEOUT_MS = 90_000; // marge au-dessus des ~30 s d'Azure SQL Serverless
 
 const QUICK_PROMPTS = [

@@ -25,7 +25,7 @@ def _odbc_connection_string(user: str, password: str) -> str:
         f"Database={database};"
         f"Uid={user};"
         f"Pwd={{{password}}};"
-        "Encrypt=yes;TrustServerCertificate=no;Connection Timeout=60;"
+        "Encrypt=yes;TrustServerCertificate=no;Connection Timeout=120;"
     )
 
 

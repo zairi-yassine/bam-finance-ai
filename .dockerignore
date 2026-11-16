@@ -1,0 +1,17 @@
+# Ignorer les fichiers locaux inutiles
+.venv
+.venv-dbt
+__pycache__
+*.pyc
+.git
+.github
+data/
+dbt_bam/
+frontend/
+node_modules/
+.pytest_cache
+*.md
+exp.md
+
+# IMPORTANT : Ne jamais mettre le .env dans l'image !
+.env

@@ -147,7 +147,7 @@ Posez une question en français ou en anglais. L'agent génère le SQL, le valid
 <br />
 <div align="center">
   <a href="https://zairi-yassine.github.io/bam-finance-ai/docs/ui_screenshot2.png">
-    <img src="docs/ui_screenshot2.png" alt="Interface BAM" width="800" height="auto">
+    <img src="docs/ui_screenshot2.png" alt="Interface BAM" width="1000" height="auto">
   </a>
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>

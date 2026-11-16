@@ -60,13 +60,6 @@
 <!-- ABOUT THE PROJECT -->
 ## À propos du projet
 
-
-<br />
-<div align="center">
-  <a href="https://zairi-yassine.github.io/bam-finance-ai/docs/architecture.html">
-    <img src="docs/architecture.png" alt="Architecture BAM" width="800" height="auto">
-  </a>
-  <br />
   <br />
   <p align="center">
     <a href="https://zairi-yassine.github.io/bam-finance-ai/docs/architecture.html">
@@ -154,6 +147,12 @@ Posez une question en français ou en anglais. L'agent génère le SQL, le valid
 
 <!-- ARCHITECTURE -->
 ## Architecture technique
+<br />
+<div align="center">
+  <a href="https://zairi-yassine.github.io/bam-finance-ai/docs/architecture.html">
+    <img src="docs/architecture.png" alt="Architecture BAM" width="800" height="auto">
+  </a>
+  <br />
 
 Le projet suit une architecture ELT moderne :
 

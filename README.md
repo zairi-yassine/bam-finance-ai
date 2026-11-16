@@ -1,19 +1,3 @@
-Voici le fichier `README.md` complet, structuré exactement comme le template "Best-README-Template" mais **100% adapté à ton projet BAM Financial Analytics**. 
-
-J'ai remplacé les placeholders par tes vraies informations (URLs Azure, stack technique, etc.).
-
-### Instructions avant de copier-coller :
-1. Crée un dossier `docs/` à la racine de ton projet.
-2. Mets-y tes deux captures d'écran :
-   * `architecture.png` (le beau schéma que tu viens de générer).
-   * `ui_screenshot.png` (la capture de ton interface Next.js avec la question sur le PIB).
-3. Crée un fichier `README.md` à la racine et colle le code ci-dessous.
-4. Remplace `[Ton Profil LinkedIn]` par l'URL de ton profil.
-
----
-
-```markdown
-<!-- Improved compatibility of back to top link: See: https://github.com/othneildrew/Best-README-Template/pull/73 -->
 <a name="readme-top"></a>
 
 <!-- PROJECT SHIELDS -->
@@ -227,11 +211,3 @@ Lien du projet : [https://github.com/zairi-yassine/bam-finance-ai](https://githu
 [Next.js-badge]: https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white
 [Next.js-url]: https://nextjs.org/
 ```
-
-### C'est tout !
-1. Copie ce bloc.
-2. Mets-le dans ton `README.md`.
-3. Assure-toi d'avoir les images `architecture.png` et `ui_screenshot.png` dans le dossier `docs/`.
-4. Fais un `git push`.
-
-Ton repo GitHub aura l'air d'un projet open-source mature et professionnel. Félicitations pour tout le travail accompli !

@@ -6,14 +6,14 @@
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
+[![LinkedIn][linkedin-shield]][[linkedin-url](https://www.linkedin.com/in/yassine-zairi-4a87771ba/)]
 [![Live API](https://img.shields.io/badge/Live_API-Azure_Container_Apps-blue?style=for-the-badge&logo=microsoftazure)](https://bam-api.salmonstone-d58feffe.francecentral.azurecontainerapps.io/docs)
 
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
   <a href="https://github.com/zairi-yassine/bam-finance-ai">
-    <img src="docs/architecture.png" alt="Logo" width="600" height="auto">
+    <img src="docs/bam-financial-ai-logo.png" alt="Logo" width="600" height="auto">
   </a>
 
   <h3 align="center">BAM Financial Analytics</h3>
@@ -144,7 +144,7 @@ Posez une question en français ou en anglais. L'agent génère le SQL, le valid
 *   *"Quels sont les indicateurs qui parlent de dette ?"*
 *   *"Drop la table fact_exchange_rate"* (Test de sécurité : le SQL Guard bloque).
 
-[![Interface BAM][product-screenshot-ui]](docs/ui_screenshot.png)
+[![Interface BAM][product-screenshot-ui]](docs/ui_screenshot2.png)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

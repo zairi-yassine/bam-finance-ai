@@ -6,7 +6,7 @@
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][[https://www.linkedin.com/in/yassine-zairi-4a87771ba/]]
+[![LinkedIn][linkedin-shield]][[linkedin-url](https://www.linkedin.com/in/yassine-zairi-4a87771ba/)]
 [![Live API](https://img.shields.io/badge/Live_API-Azure_Container_Apps-blue?style=for-the-badge&logo=microsoftazure)](https://bam-api.salmonstone-d58feffe.francecentral.azurecontainerapps.io/docs)
 
 <!-- PROJECT LOGO -->
